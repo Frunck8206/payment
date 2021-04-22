@@ -31,11 +31,15 @@
             </div>
             <div class="form-group">
                 <label asp-for="NotifyUrl"></label>
-                <input type="text" class="form-control" asp-for="NotifyUrl" value="http://*/notify/wechatpay/unifiedorder">
+                <input type="text" class="form-control" asp-for="NotifyUrl" value="http://domain.com/wechatpay/notify/unifiedorder">
             </div>
             <div class="form-group">
                 <label asp-for="TradeType"></label>
                 <input type="text" class="form-control" asp-for="TradeType" value="NATIVE">
+            </div>
+            <div class="form-group">
+                <label asp-for="ProfitSharing"></label>
+                <input type="text" class="form-control" asp-for="ProfitSharing">
             </div>
             <button type="submit" class="btn btn-primary">提交请求</button>
         </form>
@@ -45,7 +49,7 @@
                 <label>QrCode:</label>
                 @if (!string.IsNullOrEmpty(ViewData["qrcode"] as string))
                 {
-                    <embed src="../Home/QrCode?size=168&data=@ViewData["qrcode"]" width="168" height="168" type="image/svg+xml" />
+                    <embed src="/api/qrcode?data=@ViewData["qrcode"]&size=180" class="shadow-sm p-3 mb-5 bg-white rounded mx-auto d-block" type="image/svg+xml" />
                 }
             </div>
             <div class="form-group">

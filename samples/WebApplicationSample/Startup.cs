@@ -1,5 +1,5 @@
-﻿using Essensoft.AspNetCore.Payment.Alipay;
-using Essensoft.AspNetCore.Payment.WeChatPay;
+﻿using Essensoft.Paylink.Alipay;
+using Essensoft.Paylink.WeChatPay;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -20,7 +20,7 @@ namespace WebApplicationSample
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // 引入Payment 依赖注入
+            // 添加Paylink依赖注入
             services.AddAlipay();
             services.AddWeChatPay();
 
@@ -41,10 +41,7 @@ namespace WebApplicationSample
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
             }
-            app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();

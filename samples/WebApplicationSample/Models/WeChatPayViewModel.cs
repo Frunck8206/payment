@@ -81,6 +81,9 @@ namespace WebApplicationSample.Models
         [Required]
         [Display(Name = "trade_type")]
         public string TradeType { get; set; }
+
+        [Display(Name = "profit_sharing")]
+        public string ProfitSharing { get; set; }
     }
 
     public class WeChatPayAppPayViewModel
@@ -137,7 +140,7 @@ namespace WebApplicationSample.Models
         public string TradeType { get; set; }
     }
 
-    public class WeChatPayLiteAppPayViewModel
+    public class WeChatPayMiniProgramPayViewModel
     {
         [Required]
         [Display(Name = "out_trade_no")]
@@ -307,12 +310,12 @@ namespace WebApplicationSample.Models
         public string PartnerTradeNo { get; set; }
 
         [Required]
-        [Display(Name = "enc_bank_no")]
-        public string EncBankNo { get; set; }
+        [Display(Name = "bank_no")]
+        public string BankNo { get; set; }
 
         [Required]
-        [Display(Name = "enc_true_name")]
-        public string EncTrueName { get; set; }
+        [Display(Name = "true_name")]
+        public string TrueName { get; set; }
 
         [Required]
         [Display(Name = "bank_code")]
@@ -332,4 +335,70 @@ namespace WebApplicationSample.Models
         [Display(Name = "partner_trade_no")]
         public string PartnerTradeNo { get; set; }
     }
+
+    public class WeChatPayProfitSharingAddReceiverViewModel
+    {
+        [Required]
+        [Display(Name = "receiver")]
+        public string Receiver { get; set; }
+    }
+
+    public class WeChatPayProfitSharingViewModel
+    {
+        [Required]
+        [Display(Name = "transaction_id")]
+        public string TransactionId { get; set; }
+
+        [Required]
+        [Display(Name = "out_order_no")]
+        public string OutOrderNo { get; set; }
+
+        [Required]
+        [Display(Name = "receivers")]
+        public string Receivers { get; set; }
+    }
+
+    public class WeChatPayV3RefundViewModel
+    {
+        [Required]
+        [Display(Name = "out_refund_no")]
+        public string OutRefundNo { get; set; }
+
+        [Display(Name = "transaction_id")]
+        public string TransactionId { get; set; }
+
+        [Display(Name = "out_trade_no")]
+        public string OutTradeNo { get; set; }
+
+        [Display(Name = "notify_url")]
+        public string NotifyUrl { get; set; }
+
+        [Required]
+        [Display(Name = "amount.refund")]
+        public int RefundAmount { get; set; }
+
+        [Required]
+        [Display(Name = "amount.total")]
+        public int TotalAmount { get; set; }
+
+        [Required]
+        [Display(Name = "currency")]
+        public string Currency { get; set; }
+    }
+
+    public class WeChatPayV3RefundQueryViewModel
+    {
+        [Display(Name = "refund_id")]
+        public string RefundId { get; set; }
+
+        [Display(Name = "out_refund_no")]
+        public string OutRefundNo { get; set; }
+
+        [Display(Name = "transaction_id")]
+        public string TransactionId { get; set; }
+
+        [Display(Name = "out_trade_no")]
+        public string OutTradeNo { get; set; }
+    }
+
 }

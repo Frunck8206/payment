@@ -1,10 +1,10 @@
 ﻿using System.Text;
 using System.Threading.Tasks;
-using Essensoft.AspNetCore.Payment.Alipay;
-using Essensoft.AspNetCore.Payment.Alipay.Domain;
-using Essensoft.AspNetCore.Payment.Alipay.Notify;
-using Essensoft.AspNetCore.Payment.Alipay.Request;
+using Essensoft.Paylink.Alipay;
+using Essensoft.Paylink.Alipay.Domain;
+using Essensoft.Paylink.Alipay.Request;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WebApplicationSample.Models;
 
@@ -12,14 +12,14 @@ namespace WebApplicationSample.Controllers
 {
     public class AlipayController : Controller
     {
+        private readonly ILogger<AlipayController> _logger;
         private readonly IAlipayClient _client;
-        private readonly IAlipayNotifyClient _notifyClient;
         private readonly IOptions<AlipayOptions> _optionsAccessor;
 
-        public AlipayController(IAlipayClient client, IAlipayNotifyClient notifyClient, IOptions<AlipayOptions> optionsAccessor)
+        public AlipayController(ILogger<AlipayController> logger, IAlipayClient client, IOptions<AlipayOptions> optionsAccessor)
         {
+            _logger = logger;
             _client = client;
-            _notifyClient = notifyClient;
             _optionsAccessor = optionsAccessor;
         }
 
@@ -59,8 +59,12 @@ namespace WebApplicationSample.Controllers
             req.SetNotifyUrl(viewModel.NotifyUrl);
 
             var response = await _client.CertificateExecuteAsync(req, _optionsAccessor.Value);
-            ViewData["qrcode"] = response.QrCode;
-            ViewData["response"] = response.ResponseBody;
+            if (!response.IsError)
+            {
+                ViewData["qrcode"] = response.QrCode;
+            }
+
+            ViewData["response"] = response.Body;
             return View();
         }
 
@@ -92,7 +96,7 @@ namespace WebApplicationSample.Controllers
             req.SetBizModel(model);
 
             var response = await _client.CertificateExecuteAsync(req, _optionsAccessor.Value);
-            ViewData["response"] = response.ResponseBody;
+            ViewData["response"] = response.Body;
             return View();
         }
 
@@ -124,8 +128,10 @@ namespace WebApplicationSample.Controllers
             req.SetNotifyUrl(viewModel.NotifyUrl);
 
             var response = await _client.SdkExecuteAsync(req, _optionsAccessor.Value);
-            //将response.ResponseBody给 ios/android端 由其去调起支付宝APP(https://docs.open.alipay.com/204/105296/ https://docs.open.alipay.com/204/105295/)
-            ViewData["response"] = response.ResponseBody;
+            // 将response.Body给 ios、android端，由其去完成调起支付宝APP。
+            // 客户端 Android 集成流程: https://opendocs.alipay.com/open/204/105296/
+            // 客户端 iOS 集成流程: https://opendocs.alipay.com/open/204/105295/
+            ViewData["response"] = response.Body;
             return View();
         }
 
@@ -159,7 +165,7 @@ namespace WebApplicationSample.Controllers
             req.SetReturnUrl(viewModel.ReturnUrl);
 
             var response = await _client.PageExecuteAsync(req, _optionsAccessor.Value);
-            return Content(response.ResponseBody, "text/html", Encoding.UTF8);
+            return Content(response.Body, "text/html", Encoding.UTF8);
         }
 
         /// <summary>
@@ -191,7 +197,7 @@ namespace WebApplicationSample.Controllers
             req.SetReturnUrl(viewMode.ReturnUrl);
 
             var response = await _client.PageExecuteAsync(req, _optionsAccessor.Value);
-            return Content(response.ResponseBody, "text/html", Encoding.UTF8);
+            return Content(response.Body, "text/html", Encoding.UTF8);
         }
 
         /// <summary>
@@ -219,7 +225,7 @@ namespace WebApplicationSample.Controllers
             req.SetBizModel(model);
 
             var response = await _client.CertificateExecuteAsync(req, _optionsAccessor.Value);
-            ViewData["response"] = response.ResponseBody;
+            ViewData["response"] = ((AlipayResponse)response).Body;
             return View();
         }
 
@@ -251,7 +257,7 @@ namespace WebApplicationSample.Controllers
             req.SetBizModel(model);
 
             var response = await _client.CertificateExecuteAsync(req, _optionsAccessor.Value);
-            ViewData["response"] = response.ResponseBody;
+            ViewData["response"] = response.Body;
             return View();
         }
 
@@ -281,7 +287,37 @@ namespace WebApplicationSample.Controllers
             req.SetBizModel(model);
 
             var response = await _client.CertificateExecuteAsync(req, _optionsAccessor.Value);
-            ViewData["response"] = response.ResponseBody;
+            ViewData["response"] = response.Body;
+            return View();
+        }
+
+        /// <summary>
+        /// 交易关闭
+        /// </summary>
+        [HttpGet]
+        public IActionResult Close()
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// 交易关闭
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> Close(AlipayTradeCloseViewModel viewMode)
+        {
+            var model = new AlipayTradeCloseModel
+            {
+                OutTradeNo = viewMode.OutTradeNo,
+                TradeNo = viewMode.TradeNo,
+            };
+
+            var req = new AlipayTradeCloseRequest();
+            req.SetBizModel(model);
+            req.SetNotifyUrl(viewMode.NotifyUrl);
+
+            var response = await _client.CertificateExecuteAsync(req, _optionsAccessor.Value);
+            ViewData["response"] = response.Body;
             return View();
         }
 
@@ -312,7 +348,7 @@ namespace WebApplicationSample.Controllers
             var req = new AlipayFundTransUniTransferRequest();
             req.SetBizModel(model);
             var response = await _client.CertificateExecuteAsync(req, _optionsAccessor.Value);
-            ViewData["response"] = response.ResponseBody;
+            ViewData["response"] = response.Body;
             return View();
         }
 
@@ -340,7 +376,7 @@ namespace WebApplicationSample.Controllers
             var req = new AlipayFundTransCommonQueryRequest();
             req.SetBizModel(model);
             var response = await _client.CertificateExecuteAsync(req, _optionsAccessor.Value);
-            ViewData["response"] = response.ResponseBody;
+            ViewData["response"] = response.Body;
             return View();
         }
 
@@ -368,46 +404,8 @@ namespace WebApplicationSample.Controllers
             var req = new AlipayFundAccountQueryRequest();
             req.SetBizModel(model);
             var response = await _client.CertificateExecuteAsync(req, _optionsAccessor.Value);
-            ViewData["response"] = response.ResponseBody;
+            ViewData["response"] = response.Body;
             return View();
-        }
-
-        /// <summary>
-        /// 电脑网站支付 - 同步跳转
-        /// </summary>
-        [HttpGet]
-        public async Task<IActionResult> PagePayReturn()
-        {
-            try
-            {
-                var notify = await _notifyClient.ExecuteAsync<AlipayTradePagePayReturn>(Request, _optionsAccessor.Value);
-                ViewData["response"] = "支付成功";
-                return View();
-            }
-            catch
-            {
-                ViewData["response"] = "出现错误";
-                return View();
-            }
-        }
-
-        /// <summary>
-        /// 手机网站支付 - 同步跳转
-        /// </summary>
-        [HttpGet]
-        public async Task<IActionResult> WapPayReturn()
-        {
-            try
-            {
-                var notify = await _notifyClient.ExecuteAsync<AlipayTradeWapPayReturn>(Request, _optionsAccessor.Value);
-                ViewData["response"] = "支付成功";
-                return View();
-            }
-            catch
-            {
-                ViewData["response"] = "出现错误";
-                return View();
-            }
         }
     }
 }
